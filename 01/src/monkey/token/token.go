@@ -58,9 +58,14 @@ var keywords = map[string]TokenType{
 	"return": RETURN,
 }
 
+// LookupIdent 检查标识符是否为保留关键字。
+// 如果标识符是保留关键字，返回相应的TokenType。
+// 否则，返回IDENT类型，表示标识符。
 func LookupIdent(ident string) TokenType {
+	// 检查keywords字典中是否存在该标识符。
 	if tok, ok := keywords[ident]; ok {
 		return tok
 	}
+	// 如果不是关键字，返回IDENT类型。
 	return IDENT
 }
