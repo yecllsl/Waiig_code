@@ -7,7 +7,10 @@ import (
 	"testing"
 )
 
+// TestLetStatements 测试let语句的解析功能。
+// 该函数通过一系列预定义的输入字符串和预期结果来验证解析器是否能正确处理变量声明。
 func TestLetStatements(t *testing.T) {
+	// 定义一个测试用例切片，包含输入字符串、预期的变量标识符和预期的变量值。
 	tests := []struct {
 		input              string
 		expectedIdentifier string
@@ -18,22 +21,30 @@ func TestLetStatements(t *testing.T) {
 		{"let foobar = y;", "foobar", "y"},
 	}
 
+	// 遍历测试用例切片，对每个测试用例进行解析和验证。
 	for _, tt := range tests {
+		// 创建一个词法分析器，用于将输入字符串转换为词法符号流。
 		l := lexer.New(tt.input)
+		// 创建一个解析器，用于解析词法符号流并生成抽象语法树。
 		p := New(l)
+		// 使用解析器解析程序，并获取解析后的抽象语法树。
 		program := p.ParseProgram()
+		// 检查解析过程中是否有错误发生，如果有，则记录错误。
 		checkParserErrors(t, p)
 
+		// 验证程序的语句数量是否为1，因为每个测试用例只包含一个let语句。
 		if len(program.Statements) != 1 {
 			t.Fatalf("program.Statements does not contain 1 statements. got=%d",
 				len(program.Statements))
 		}
 
+		// 获取程序的第一个语句，并验证它是否为一个let语句且变量标识符是否符合预期。
 		stmt := program.Statements[0]
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
 			return
 		}
 
+		// 获取let语句中的变量值，并验证它是否与预期的值相等。
 		val := stmt.(*ast.LetStatement).Value
 		if !testLiteralExpression(t, val, tt.expectedValue) {
 			return
@@ -41,7 +52,10 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+// TestReturnStatements 测试返回语句的解析是否正确。
+// 该函数通过一系列预定义的输入和预期输出来验证返回语句是否被正确地解析。
 func TestReturnStatements(t *testing.T) {
+	// 定义测试用例数组，包含输入字符串和预期的结果值。
 	tests := []struct {
 		input         string
 		expectedValue interface{}
@@ -51,57 +65,76 @@ func TestReturnStatements(t *testing.T) {
 		{"return foobar;", "foobar"},
 	}
 
+	// 遍历测试用例数组，对每个测试用例进行解析和验证。
 	for _, tt := range tests {
+		// 创建一个词法分析器，用于将输入字符串转换为词法符号。
 		l := lexer.New(tt.input)
+		// 创建一个解析器，用于将词法符号转换为AST节点。
 		p := New(l)
+		// 解析程序，并获取解析后的AST节点。
 		program := p.ParseProgram()
+		// 检查解析过程中是否有错误发生。
 		checkParserErrors(t, p)
 
+		// 验证程序的语句数量是否为1。
 		if len(program.Statements) != 1 {
 			t.Fatalf("program.Statements does not contain 1 statements. got=%d",
 				len(program.Statements))
 		}
 
+		// 获取程序的第一个语句。
 		stmt := program.Statements[0]
+		// 将语句断言为返回语句类型，并进行类型检查。
 		returnStmt, ok := stmt.(*ast.ReturnStatement)
 		if !ok {
 			t.Fatalf("stmt not *ast.ReturnStatement. got=%T", stmt)
 		}
+		// 验证返回语句的令牌字面量是否为"return"。
 		if returnStmt.TokenLiteral() != "return" {
 			t.Fatalf("returnStmt.TokenLiteral not 'return', got %q",
 				returnStmt.TokenLiteral())
 		}
+		// 使用测试函数验证返回值是否与预期相符。
 		if testLiteralExpression(t, returnStmt.ReturnValue, tt.expectedValue) {
 			return
 		}
 	}
 }
 
+// TestIdentifierExpression 测试解析单个标识符表达式的功能
+// 输入为 "foobar;"，预期解析为一个标识符表达语句
 func TestIdentifierExpression(t *testing.T) {
 	input := "foobar;"
 
+	// 创建词法分析器和解析器
 	l := lexer.New(input)
 	p := New(l)
+	// 解析程序并检查解析错误
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
 
+	// 检查程序是否包含且仅包含一个语句
 	if len(program.Statements) != 1 {
 		t.Fatalf("program has not enough statements. got=%d",
 			len(program.Statements))
 	}
+	// 断言第一个语句是表达式语句
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	if !ok {
 		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
 			program.Statements[0])
 	}
 
+	// 断言表达式是标识符类型
 	ident, ok := stmt.Expression.(*ast.Identifier)
 	if !ok {
 		t.Fatalf("exp not *ast.Identifier. got=%T", stmt.Expression)
 	}
+	// 检查标识符的值是否为 "foobar"
 	if ident.Value != "foobar" {
 		t.Errorf("ident.Value not %s. got=%s", "foobar", ident.Value)
 	}
+	// 检查标识符的字面量是否为 "foobar"
 	if ident.TokenLiteral() != "foobar" {
 		t.Errorf("ident.TokenLiteral not %s. got=%s", "foobar",
 			ident.TokenLiteral())
