@@ -59,13 +59,19 @@ func (p *Program) TokenLiteral() string {
 	}
 }
 
+// Program 的 String 方法返回程序的字符串表示。
+// 该方法遍历程序中的所有语句，并将它们的字符串表示拼接起来。
+// 主要用于调试和日志记录，以便开发者以可读的形式查看程序结构。
 func (p *Program) String() string {
 	var out bytes.Buffer
 
+	// 遍历 Program 中的所有 Statements
 	for _, s := range p.Statements {
+		// 将每个语句的字符串表示写入到 Buffer 中
 		out.WriteString(s.String())
 	}
 
+	// 返回拼接后的字符串
 	return out.String()
 }
 
@@ -177,32 +183,66 @@ func (es *ExpressionStatement) String() string {
 	return ""
 }
 
+// BlockStatement 表示代码中的一个代码块，包含一系列的语句。
+// 它通常用于封装一系列的操作，例如函数体或控制结构的主体部分。
 type BlockStatement struct {
-	Token      token.Token // the { token
-	Statements []Statement
+	Token      token.Token // the { token: 标记代码块的开始。
+	Statements []Statement // 语句列表: 包含代码块内的所有语句，按顺序执行。
 }
 
-func (bs *BlockStatement) statementNode()       {}
+// statementNode 是 BlockStatement 类型实现的一个接口方法。
+// 该方法不执行任何操作，主要用于使 BlockStatement 符合特定接口的要求。
+// 这种设计允许 BlockStatement 在需要接口类型的场景中被多态地使用，增强了代码的灵活性和可扩展性。
+func (bs *BlockStatement) statementNode() {}
+
+// TokenLiteral 返回BlockStatement的令牌字面值。
+// 该方法主要用于获取与BlockStatement关联的令牌的字面值字符串。
+// 没有输入参数。
+// 返回值是字符串类型，表示令牌的字面值。
 func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+
+// BlockStatement 的 String 方法返回包含所有语句字符串表示的单个字符串。
+// 该方法主要用于将块语句序列化为字符串形式，以便于打印或进一步处理。
+// 参数: 无
+// 返回值: string 类型，表示所有语句的字符串形式。
 func (bs *BlockStatement) String() string {
+	// 创建一个缓冲区以高效地构建最终的字符串输出。
 	var out bytes.Buffer
 
+	// 遍历 BlockStatement 中的所有语句。
 	for _, s := range bs.Statements {
+		// 将每个语句的字符串表示追加到缓冲区中。
 		out.WriteString(s.String())
 	}
 
+	// 将缓冲区内容转换为字符串并返回。
 	return out.String()
 }
 
 // Expressions
+// Identifier 表示源代码中的标识符，例如变量名、函数名等。
 type Identifier struct {
-	Token token.Token // the token.IDENT token
-	Value string
+	Token token.Token // 表示标识符的 token 类型
+	Value string      // 标识符的字符串值
 }
 
-func (i *Identifier) expressionNode()      {}
+// expressionNode 方法将 Identifier 类型的实例标记为一个表达式节点。
+// 这个方法主要用于在语法树中标识当前节点的角色。
+// 该方法没有参数，也没有返回值。
+func (i *Identifier) expressionNode() {}
+
+// TokenLiteral 返回标识符的字面量字符串。
+// 该方法属于 Identifier 类型，用于获取存储在 Token 字段中的 Literal 属性值。
+// 主要用于解析或打印标识符时需要直接访问其原始字符串表示。
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
-func (i *Identifier) String() string       { return i.Value }
+
+// Identifier 的 String 方法返回标识符的字符串表示。
+// 此方法主要用于将标识符对象以字符串形式输出，便于日志记录和调试。
+// 参数: 无
+// 返回值: string 类型，表示标识符的值。
+func (i *Identifier) String() string {
+	return i.Value
+}
 
 // Boolean 结构体，用于表示布尔类型的值
 type Boolean struct {
@@ -414,26 +454,46 @@ func (fl *FunctionLiteral) String() string {
 	return out.String()
 }
 
+// CallExpression 表示抽象语法树中的函数调用表达式。
+// 它包括一个标记、一个要调用的函数以及传递给函数的参数列表。
 type CallExpression struct {
-	Token     token.Token // The '(' token
-	Function  Expression  // Identifier or FunctionLiteral
-	Arguments []Expression
+	Token     token.Token  // 表示函数调用的左括号标记 '('
+	Function  Expression   // 可以是标识符或函数字面量
+	Arguments []Expression // 函数调用的参数列表
 }
 
-func (ce *CallExpression) expressionNode()      {}
+// expressionNode 是 CallExpression 类型实现的一个接口方法。
+// 该方法表明 CallExpression 是抽象语法树中的一种表达式节点。
+// 该方法不接受任何参数，也不返回任何值。
+func (ce *CallExpression) expressionNode() {}
+
+// TokenLiteral 返回调用表达式的字面量字符串。
+// 该方法主要用于获取表达式开头的令牌（Token）的字面量值（Literal），
+// 以便在解析或执行表达式时使用。
 func (ce *CallExpression) TokenLiteral() string { return ce.Token.Literal }
+
+// String 方法用于将 CallExpression 实例格式化为字符串表示形式。
+// 它主要应用于表达式解析和日志输出等场景。
 func (ce *CallExpression) String() string {
+	// 创建一个缓冲区以高效地构建字符串。
 	var out bytes.Buffer
 
+	// 初始化一个字符串切片来存储所有参数的字符串表示。
 	args := []string{}
+	// 遍历 CallExpression 的所有参数，将每个参数的字符串表示添加到切片中。
 	for _, a := range ce.Arguments {
 		args = append(args, a.String())
 	}
 
+	// 将函数名的字符串表示写入缓冲区。
 	out.WriteString(ce.Function.String())
+	// 写入左括号，标志着函数调用的开始。
 	out.WriteString("(")
+	// 将所有参数的字符串表示，用逗号和空格连接起来，并写入缓冲区。
 	out.WriteString(strings.Join(args, ", "))
+	// 写入右括号，标志着函数调用的结束。
 	out.WriteString(")")
 
+	// 返回构建好的字符串。
 	return out.String()
 }

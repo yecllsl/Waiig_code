@@ -601,40 +601,71 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	return identifiers
 }
 
+// parseCallExpression 解析调用表达式
+//
+// 参数:
+//
+//	function ast.Expression: 被调用的函数表达式
+//
+// 返回值:
+//
+//	ast.Expression: 解析后的调用表达式
+//
+// 该函数创建并返回一个调用表达式对象，同时解析并设置其参数
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	// 创建调用表达式对象，设置当前令牌和被调用的函数
 	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	// 解析并设置调用表达式的参数
 	exp.Arguments = p.parseCallArguments()
 	return exp
 }
 
+// parseCallArguments 解析函数调用的参数列表。
+// 该函数在解析到函数调用时被调用，以解析括号内的参数表达式。
+// 返回值是解析到的表达式数组，如果解析失败或没有参数，则返回空数组或nil。
 func (p *Parser) parseCallArguments() []ast.Expression {
+	// 初始化参数列表为空数组。
 	args := []ast.Expression{}
 
+	// 如果下一个token是右括号，说明没有参数，直接返回空数组。
 	if p.peekTokenIs(token.RPAREN) {
 		p.nextToken()
 		return args
 	}
 
+	// 解析第一个参数表达式。
 	p.nextToken()
 	args = append(args, p.parseExpression(LOWEST))
 
+	// 如果下一个token是逗号，说明还有更多参数。
 	for p.peekTokenIs(token.COMMA) {
-		p.nextToken()
-		p.nextToken()
-		args = append(args, p.parseExpression(LOWEST))
+		p.nextToken()                                  // 移动到逗号
+		p.nextToken()                                  // 移动到下一个参数的开始
+		args = append(args, p.parseExpression(LOWEST)) // 解析下一个参数表达式
 	}
 
+	// 如果下一个token不是右括号，说明参数列表解析失败，返回nil。
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
+	// 返回解析到的参数列表。
 	return args
 }
 
+// registerPrefix 为给定的 tokenType 注册一个前缀解析函数。
+// 当解析器遇到对应类型的令牌时，将使用该函数来解析。
+// 参数:
+//
+//	tokenType - 需要注册解析函数的令牌类型。
+//	fn - 对应令牌类型的前缀解析函数。
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 	p.prefixParseFns[tokenType] = fn
 }
 
+// registerInfix 用于注册中缀操作符的解析函数。
+// 参数 tokenType 是中缀操作符的类型，fn 是对应的解析函数。
+// 这个方法将解析函数与特定的中缀操作符类型关联起来，使得解析器在遇到相应的操作符时能够调用正确的解析逻辑。
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
 }
