@@ -441,15 +441,22 @@ func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
 }
 
+// parseGroupedExpression 解析分组表达式，如圆括号包围的表达式。
+// 这个函数主要用于处理优先级最高的表达式解析。
 func (p *Parser) parseGroupedExpression() ast.Expression {
+	// 移动到下一个token，即左圆括号后的第一个token。
 	p.nextToken()
 
+	// 解析当前的表达式，由于分组表达式内部的表达式优先级最低，
+	// 所以这里使用LOWEST优先级进行解析。
 	exp := p.parseExpression(LOWEST)
 
+	// 检查下一个token是否为右圆括号，如果不是，则解析失败，返回nil。
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
+	// 成功解析完分组表达式，返回解析得到的表达式。
 	return exp
 }
 
