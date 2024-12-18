@@ -460,53 +460,80 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	return exp
 }
 
+// parseIfExpression 解析if表达式
+// 该函数负责解析if语句，包括条件、执行后果和可选的else部分
 func (p *Parser) parseIfExpression() ast.Expression {
+	// 初始化IfExpression结构体，并将当前token作为标识
 	expression := &ast.IfExpression{Token: p.curToken}
 
+	// 检查是否有一个左括号跟随在if后面
 	if !p.expectPeek(token.LPAREN) {
 		return nil
 	}
 
+	// 移动到下一个token，并解析条件表达式
 	p.nextToken()
 	expression.Condition = p.parseExpression(LOWEST)
 
+	// 确保条件表达式以右括号结束
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
+	// 检查是否有一个左大括号跟随在条件表达式后面
 	if !p.expectPeek(token.LBRACE) {
 		return nil
 	}
 
+	// 解析if条件下的执行后果代码块
 	expression.Consequence = p.parseBlockStatement()
 
+	// 检查是否有else部分
 	if p.peekTokenIs(token.ELSE) {
 		p.nextToken()
 
+		// 确保else部分以左大括号开始
 		if !p.expectPeek(token.LBRACE) {
 			return nil
 		}
 
+		// 解析else部分的执行后果代码块
 		expression.Alternative = p.parseBlockStatement()
 	}
 
+	// 返回解析完成的if表达式
 	return expression
 }
 
+// parseBlockStatement 解析代码块语句
+//
+// 该函数负责解析一个代码块，代码块以当前解析器位置的花括号（{）开始，
+// 并一直解析到遇到右花括号（}）或文件结束（EOF）为止。在代码块内，
+// 该函数会尝试解析每一个语句，并将其添加到代码块的语句列表中。
+//
+// 返回值是一个指向ast.BlockStatement的指针，表示解析完成的代码块。
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	// 初始化一个BlockStatement结构体，并将当前解析器位置的Token与其关联
 	block := &ast.BlockStatement{Token: p.curToken}
+	// 初始化代码块的语句列表为空
 	block.Statements = []ast.Statement{}
 
+	// 移动到代码块内的第一个Token
 	p.nextToken()
 
+	// 循环解析语句，直到遇到右花括号或文件结束
 	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
+		// 尝试解析当前的语句
 		stmt := p.parseStatement()
+		// 如果解析成功，则将语句添加到代码块的语句列表中
 		if stmt != nil {
 			block.Statements = append(block.Statements, stmt)
 		}
+		// 移动到下一个Token
 		p.nextToken()
 	}
 
+	// 返回解析完成的代码块
 	return block
 }
 

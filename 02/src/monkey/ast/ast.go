@@ -321,28 +321,44 @@ func (ie *InfixExpression) String() string {
 	return out.String()
 }
 
+// IfExpression 表示抽象语法树中的 'if' 表达式结构。
+// 它包括 'if' 标记、条件表达式、结果代码块和备选代码块。
 type IfExpression struct {
-	Token       token.Token // The 'if' token
-	Condition   Expression
-	Consequence *BlockStatement
-	Alternative *BlockStatement
+	Token       token.Token     // 'if' 标记
+	Condition   Expression      // 'if' 语句的条件表达式
+	Consequence *BlockStatement // 条件为真时执行的代码块
+	Alternative *BlockStatement // 条件为假时执行的代码块
 }
 
-func (ie *IfExpression) expressionNode()      {}
+// expressionNode 方法是 IfExpression 类型的一个空白方法，没有参数和返回值。
+// 它的存在可能是为了满足某个接口的要求，或者是 IfExpression 类型的一个占位方法。
+// 该方法没有实现任何逻辑，因此不执行任何操作。
+func (ie *IfExpression) expressionNode() {}
+
+// TokenLiteral 返回 IfExpression 结构体中 Token 的字面值字符串
+// 该方法主要用于获取 If 表达式开头的 if 关键字的字面值
+// 它没有输入参数，返回值为字符串类型
 func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
+
+// IfExpression 的 String 方法返回该如果表达式的字符串表示。
+// 该方法通过拼接 "if"、条件表达式、后续执行的表达式以及可选的 "else" 和替代执行的表达式来构建整个字符串。
+// 这主要用于调试和日志记录目的，以便开发者可以以人类可读的形式查看表达式的结构。
 func (ie *IfExpression) String() string {
 	var out bytes.Buffer
 
+	// 写入 "if" 开头，紧接着是条件表达式的字符串表示。
 	out.WriteString("if")
 	out.WriteString(ie.Condition.String())
 	out.WriteString(" ")
 	out.WriteString(ie.Consequence.String())
 
+	// 如果存在替代执行的表达式（else 分支），则也写入其字符串表示。
 	if ie.Alternative != nil {
 		out.WriteString("else ")
 		out.WriteString(ie.Alternative.String())
 	}
 
+	// 返回构建好的字符串。
 	return out.String()
 }
 
