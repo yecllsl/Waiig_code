@@ -197,14 +197,29 @@ func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
 func (i *Identifier) String() string       { return i.Value }
 
+// Boolean 结构体，用于表示布尔类型的值
 type Boolean struct {
+	// Token 字段，用于存储布尔值对应的 Token
 	Token token.Token
+	// Value 字段，用于存储布尔值
 	Value bool
 }
 
-func (b *Boolean) expressionNode()      {}
+// expressionNode 方法定义了 Boolean 类型的节点作为表达式节点的接口。
+// 该方法没有参数和返回值，当前实现为空，可能预留用于未来扩展或特定场景下的操作定义。
+func (b *Boolean) expressionNode() {}
+
+// TokenLiteral 返回Boolean类型的字面量字符串。
+// 该方法主要用于获取原始的字符串表示，通常用于解析或打印原始输入值。
+// 没有输入参数。
+// 返回值为字符串类型，表示Boolean类型的字面量。
 func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
-func (b *Boolean) String() string       { return b.Token.Literal }
+
+// String 实现了 fmt.Stringer 接口，用于将 Boolean 类型的值转换为字符串表示形式。
+// 这个方法直接返回原始字面值，即 Token.Literal。
+func (b *Boolean) String() string {
+	return b.Token.Literal
+}
 
 // IntegerLiteral 表示源代码中的整数字面量。
 // 它包括字面量的标记信息及其实际的整数值。

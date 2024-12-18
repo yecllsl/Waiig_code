@@ -432,6 +432,11 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return expression
 }
 
+// parseBoolean 解析布尔表达式。
+//
+// 该函数创建并返回一个布尔表达式的AST节点，表示一个布尔值。
+// 它使用当前的标记作为布尔表达式的标记，并通过检查当前标记是否为token.TRUE来确定布尔值。
+// 如果当前标记是token.TRUE，则返回的布尔表达式的Value字段为true；否则为false。
 func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
 }
