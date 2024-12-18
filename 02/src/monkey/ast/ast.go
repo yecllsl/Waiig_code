@@ -267,24 +267,42 @@ func (pe *PrefixExpression) String() string {
 	return out.String()
 }
 
+// InfixExpression 表示中缀表示法中的二元表达式，例如 "1 + 2"。
+// 该结构体包含操作符的标记（如 +, -, *, /），以及操作符的左操作数和右操作数。
 type InfixExpression struct {
-	Token    token.Token // The operator token, e.g. +
-	Left     Expression
-	Operator string
-	Right    Expression
+	Token    token.Token // 操作符标记，例如 +
+	Left     Expression  // 表达式的左操作数
+	Operator string      // 操作符，例如 "+", "-", "*", "/"
+	Right    Expression  // 表达式的右操作数
 }
 
-func (ie *InfixExpression) expressionNode()      {}
+func (ie *InfixExpression) expressionNode() {}
+
+// TokenLiteral 返回InfixExpression类型的对象的字面量字符串表示。
+// 该方法主要用于获取表达式开头的Token的字面量值，通常用于打印或显示目的。
+// 参数: 无
+// 返回值: string 类型，表示表达式开头Token的字面量值。
 func (ie *InfixExpression) TokenLiteral() string { return ie.Token.Literal }
+
+// InfixExpression 的 String 方法返回该结构体的字符串表示形式。
+// 该方法实现了 fmt.Stringer 接口，用于自定义对象的字符串表示。
+// 主要用于调试和日志记录目的，提供了一种标准的方式来显示 InfixExpression 对象的内容。
 func (ie *InfixExpression) String() string {
+	// 创建一个可写缓冲区来构建最终的字符串表示。
 	var out bytes.Buffer
 
+	// 写入左括号，标志着表达式的开始。
 	out.WriteString("(")
+	// 递归调用 Left 节点的 String 方法，构建左子表达式的字符串表示。
 	out.WriteString(ie.Left.String())
+	// 写入操作符，并在其前后添加空格，以符合常规的表达式格式。
 	out.WriteString(" " + ie.Operator + " ")
+	// 递归调用 Right 节点的 String 方法，构建右子表达式的字符串表示。
 	out.WriteString(ie.Right.String())
+	// 写入右括号，标志着表达式的结束。
 	out.WriteString(")")
 
+	// 返回构建好的表达式字符串。
 	return out.String()
 }
 

@@ -20,16 +20,22 @@ const (
 	CALL        // myFunction(X)
 )
 
+// 定义一个precedences的map，用于存储token.TokenType和对应的优先级
 var precedences = map[token.TokenType]int{
-	token.EQ:       EQUALS,
-	token.NOT_EQ:   EQUALS,
-	token.LT:       LESSGREATER,
-	token.GT:       LESSGREATER,
-	token.PLUS:     SUM,
-	token.MINUS:    SUM,
+	// token.EQ和token.NOT_EQ的优先级为EQUALS
+	token.EQ:     EQUALS,
+	token.NOT_EQ: EQUALS,
+	// token.LT和token.GT的优先级为LESSGREATER
+	token.LT: LESSGREATER,
+	token.GT: LESSGREATER,
+	// token.PLUS和token.MINUS的优先级为SUM
+	token.PLUS:  SUM,
+	token.MINUS: SUM,
+	// token.SLASH和token.ASTERISK的优先级为PRODUCT
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
-	token.LPAREN:   CALL,
+	// token.LPAREN的优先级为CALL
+	token.LPAREN: CALL,
 }
 
 type (
@@ -328,19 +334,31 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	return leftExp
 }
 
+// peekPrecedence 返回当前查看的token的优先级
+// 当前函数用于在解析过程中确定操作符或关键字的优先级，以便正确地构建解析树
+// 如果当前查看的token在precedences映射中没有对应的优先级，那么函数将返回LOWEST，表示最低优先级
 func (p *Parser) peekPrecedence() int {
+	// 检查当前查看的token类型在precedences映射中是否有对应的优先级
 	if p, ok := precedences[p.peekToken.Type]; ok {
+		// 如果有，返回对应的优先级
 		return p
 	}
 
+	// 如果没有，返回最低优先级
 	return LOWEST
 }
 
+// curPrecedence 返回当前标记类型的运算符优先级。
+// 该方法通过查找 precedences 字典来获取当前标记类型的优先级值。
+// 如果当前标记类型在字典中没有对应的优先级，则返回最低优先级 LOWEST。
 func (p *Parser) curPrecedence() int {
+	// 检查当前标记类型是否在 precedences 字典中定义
 	if p, ok := precedences[p.curToken.Type]; ok {
+		// 如果是，返回对应的优先级值
 		return p
 	}
 
+	// 如果不是，返回最低优先级
 	return LOWEST
 }
 
@@ -388,17 +406,29 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return expression
 }
 
+// parseInfixExpression 解析中缀表达式，如加法、乘法等。
+// 它根据当前解析的左表达式和当前的令牌构建一个中缀表达式结构体。
+// 参数:
+//   - left: 左表达式，即中缀表达式的左侧操作数。
+//
+// 返回值:
+//   - ast.Expression: 解析后的中缀表达式。
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	// 创建一个中缀表达式结构体，设置其基本属性。
 	expression := &ast.InfixExpression{
 		Token:    p.curToken,
 		Operator: p.curToken.Literal,
 		Left:     left,
 	}
 
+	// 获取当前运算符的优先级。
 	precedence := p.curPrecedence()
+	// 移动到下一个令牌。
 	p.nextToken()
+	// 解析右侧表达式，使用当前运算符的优先级来决定解析的深度。
 	expression.Right = p.parseExpression(precedence)
 
+	// 返回构建好的中缀表达式。
 	return expression
 }
 
