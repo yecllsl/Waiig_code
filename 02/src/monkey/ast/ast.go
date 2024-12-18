@@ -69,13 +69,20 @@ func (p *Program) String() string {
 	return out.String()
 }
 
-// LetStatement represents a 'let' statement in the program.
-// It contains three parts: Token, Name, and Value.
-// The purpose of this structure is to define the syntax and structure of a 'let' statement, which is used to declare variables in the program.
+// LetStatement 表示语法树中的一个 'let' 语句。
+// 它用于声明并可选地为变量赋值。
 type LetStatement struct {
-	Token token.Token // token.LET 词法单元，标识声明的类型为 'let'
-	Name  *Identifier // Variable name, represented by an Identifier structure
-	Value Expression  // Variable value, represented by an Expression interface
+	// Token 存储 'let' 关键字的词法信息。
+	// 这包括在源代码中的位置等信息。
+	Token token.Token
+
+	// Name 是指向 Identifier 结构的指针，表示声明的变量名。
+	// 它包含标识符的词法信息和名称。
+	Name *Identifier
+
+	// Value 是一个 Expression 接口类型的值，表示赋给变量的值。
+	// 它可以是任何表达式，例如字面量、函数调用或二元运算表达式等。
+	Value Expression
 }
 
 // statementNode 方法满足 Node 接口的要求。
@@ -362,28 +369,48 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+// FunctionLiteral 表示函数字面量的结构。
+// 它包括函数的标记、参数和函数体。
 type FunctionLiteral struct {
-	Token      token.Token // The 'fn' token
-	Parameters []*Identifier
-	Body       *BlockStatement
+	Token      token.Token     // 标记 'fn' 表示函数定义的开始
+	Parameters []*Identifier   // 函数的参数，由标识符切片表示
+	Body       *BlockStatement // 函数体，包含要执行的语句
 }
 
-func (fl *FunctionLiteral) expressionNode()      {}
+// expressionNode 是 FunctionLiteral 类型实现的一个接口方法。
+// 该方法表明 FunctionLiteral 是抽象语法树中的一种表达式节点。
+// 该方法不接受任何参数，也不返回任何值。
+func (fl *FunctionLiteral) expressionNode() {}
+
+// TokenLiteral 返回函数字面量的令牌字面值
+// 该方法主要用于获取标识函数开始的关键字，如`func`
 func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
+
+// String 实现了 fmt.Stringer 接口，用于生成函数字面量的字符串表示。
+// 这个方法主要用于调试和日志记录，通过拼接函数的各个部分来构建其文本表示。
 func (fl *FunctionLiteral) String() string {
+	// 创建一个缓冲区来构建字符串。
 	var out bytes.Buffer
 
+	// 初始化一个字符串切片来存储参数的字符串表示。
 	params := []string{}
+	// 遍历函数的参数，将它们的字符串表示添加到切片中。
 	for _, p := range fl.Parameters {
 		params = append(params, p.String())
 	}
 
+	// 将函数的标识符写入缓冲区。
 	out.WriteString(fl.TokenLiteral())
+	// 写入左括号，标志着函数参数的开始。
 	out.WriteString("(")
+	// 将参数的字符串表示用逗号和空格连接起来，并写入缓冲区。
 	out.WriteString(strings.Join(params, ", "))
+	// 写入右括号和一个空格，标志着函数参数的结束。
 	out.WriteString(") ")
+	// 将函数体的字符串表示写入缓冲区。
 	out.WriteString(fl.Body.String())
 
+	// 返回构建好的字符串。
 	return out.String()
 }
 

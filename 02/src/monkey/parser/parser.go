@@ -537,37 +537,54 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	return block
 }
 
+// parseFunctionLiteral 解析函数字面量。
+// 该函数首先检查当前标记是否为左括号，然后解析函数的参数，
+// 接着检查下一个标记是否为左大括号，最后解析函数的主体。
+// 如果解析过程中遇到预期的标记不符合，则返回nil。
+// 返回值是解析完成的函数字面量，如果解析失败则返回nil。
 func (p *Parser) parseFunctionLiteral() ast.Expression {
+	// 初始化函数字面量，并将当前标记作为函数字面量的标记。
 	lit := &ast.FunctionLiteral{Token: p.curToken}
 
+	// 检查下一个标记是否为左括号，如果不是则返回nil。
 	if !p.expectPeek(token.LPAREN) {
 		return nil
 	}
 
+	// 解析函数的参数。
 	lit.Parameters = p.parseFunctionParameters()
 
+	// 检查下一个标记是否为左大括号，如果不是则返回nil。
 	if !p.expectPeek(token.LBRACE) {
 		return nil
 	}
 
+	// 解析函数的主体。
 	lit.Body = p.parseBlockStatement()
 
+	// 返回解析完成的函数字面量。
 	return lit
 }
 
+// parseFunctionParameters 解析函数的参数列表。
+// 该函数在解析遇到右括号 ')' 时结束。
+// 如果参数列表为空，则直接返回空的标识符列表。
+// 如果解析过程中遇到预期之外的令牌，则返回nil。
 func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	identifiers := []*ast.Identifier{}
 
+	// 如果下一个令牌是右括号')'，表明参数列表为空，直接返回。
 	if p.peekTokenIs(token.RPAREN) {
 		p.nextToken()
 		return identifiers
 	}
 
+	// 处理第一个参数。
 	p.nextToken()
-
 	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	identifiers = append(identifiers, ident)
 
+	// 继续处理其余的参数，直到遇到的下一个令牌不是逗号','。
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
 		p.nextToken()
@@ -575,10 +592,12 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 		identifiers = append(identifiers, ident)
 	}
 
+	// 期望下一个令牌是右括号')'，如果不是，则表明参数列表解析失败，返回nil。
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
+	// 返回解析到的参数列表。
 	return identifiers
 }
 
