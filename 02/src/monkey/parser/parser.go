@@ -8,8 +8,9 @@ import (
 	"strconv"
 )
 
+// 定义了一组常量，用于表示不同操作符的优先级
 const (
-	_ int = iota
+	_ int = iota //这里使用iota为这些常量设置逐个递增的数值。空白标识符_为0，其余的常量值是1到7
 	LOWEST
 	EQUALS      // ==
 	LESSGREATER // > or <
@@ -164,8 +165,14 @@ func (p *Parser) peekError(t token.TokenType) {
 	p.errors = append(p.errors, msg)
 }
 
+// noPrefixParseFnError 只是将格式化的错误消息添加到语法分析器的errors字段中
+// 参数:
+//
+//	t - 找不到前缀解析函数的令牌类型。
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	// 格式化错误消息
 	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	// 将错误消息添加到错误列表中
 	p.errors = append(p.errors, msg)
 }
 
@@ -206,7 +213,7 @@ func (p *Parser) parseStatement() ast.Statement {
 		// 当前词法符号类型为 RETURN 时，解析 return 语句。
 		return p.parseReturnStatement()
 	default:
-		// 当前词法符号类型不属于上述情况时，解析表达式语句。
+		// 当前词法符号类型不属于上述情况时（只有let和return语句），解析表达式语句。
 		return p.parseExpressionStatement()
 	}
 }
@@ -268,37 +275,56 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+// parseExpressionStatement 解析表达式语句
+// 表达式语句是程序中的一种基本语句，它由一个表达式构成
+// 该函数主要负责创建表达式语句的节点，并解析其中的表达式
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	// 初始化表达式语句节点
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
+	// 解析表达式，表达式的优先级由LOWEST常量指定
 	stmt.Expression = p.parseExpression(LOWEST)
 
+	// 如果下一个token是分号，则表明语句结束，移动到下一个token
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
+	// 返回解析完成的表达式语句节点
 	return stmt
 }
 
+// parseExpression 解析表达式，根据运算符的优先级递归地构建表达式的AST节点。
+// 参数 precedence 表达式当前的优先级。
+// 返回值是解析得到的表达式节点。
 func (p *Parser) parseExpression(precedence int) ast.Expression {
+	// 获取当前令牌类型的前缀解析函数。
 	prefix := p.prefixParseFns[p.curToken.Type]
+	// 如果前缀解析函数为空，则表示不支持当前令牌类型的解析，抛出错误。
 	if prefix == nil {
 		p.noPrefixParseFnError(p.curToken.Type)
 		return nil
 	}
+	// 调用前缀解析函数解析当前令牌为表达式节点。
 	leftExp := prefix()
 
+	// 循环解析中缀表达式，直到遇到分号或当前优先级低于下一看见的令牌优先级。
 	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+		// 获取下一看见的令牌类型的中缀解析函数。
 		infix := p.infixParseFns[p.peekToken.Type]
+		// 如果中缀解析函数为空，则返回当前解析的表达式节点。
 		if infix == nil {
 			return leftExp
 		}
 
+		// 移动到下一看见的令牌。
 		p.nextToken()
 
+		// 调用中缀解析函数，将当前表达式节点作为参数，解析得到新的表达式节点。
 		leftExp = infix(leftExp)
 	}
 
+	// 返回最终解析的表达式节点。
 	return leftExp
 }
 
@@ -322,21 +348,33 @@ func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
+// parseIntegerLiteral 解析整数字面量。
+// 该函数创建一个整数字面量节点，并尝试将当前记号的字面值解析为64位整数。
+// 如果解析失败，它会记录一个错误并返回nil。
 func (p *Parser) parseIntegerLiteral() ast.Expression {
+	// 初始化整数字面量节点。
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 
+	// 尝试将当前记号的字面值解析为64位整数。
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
+		// 如果解析失败，格式化错误信息并添加到错误列表中。
 		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
 		p.errors = append(p.errors, msg)
 		return nil
 	}
 
+	// 将成功解析的整数值赋给字面量节点。
 	lit.Value = value
 
+	// 返回整数字面量节点。
 	return lit
 }
 
+// parsePrefixExpression 解析前缀表达式。
+// 该函数创建一个前缀表达式结构体，设置当前令牌为表达式的令牌，
+// 并将当前令牌的字面值作为操作符。然后，获取下一个令牌，并解析
+// 表达式的右侧部分。这适用于处理如“-5”或“!true”等前缀表达式。
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	expression := &ast.PrefixExpression{
 		Token:    p.curToken,

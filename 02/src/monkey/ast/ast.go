@@ -112,7 +112,7 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
-// ReturnStatement 结构体表示一个返回语句
+// ReturnStatement 结构体表示一个"返回语句"
 type ReturnStatement struct {
 	// Token 保存返回语句的 token
 	Token token.Token
@@ -144,13 +144,25 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
+// ExpressionStatement 结构体表示一个表达式语句
 type ExpressionStatement struct {
-	Token      token.Token // the first token of the expression
+	Token      token.Token // 该表达式中的第一个词法单元
 	Expression Expression
 }
 
-func (es *ExpressionStatement) statementNode()       {}
+// statementNode 实现了 ExpressionStatement 的 statementNode 方法，
+// 该方法用于使 ExpressionStatement 符合 statement 节点接口。
+func (es *ExpressionStatement) statementNode() {}
+
+// TokenLiteral 返回表达式语句的字面量字符串。
+// 该方法主要用于获取与表达式语句关联的令牌的字面量值。
+// 没有输入参数。
+// 返回值是字符串类型，表示令牌的字面量值。
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
+
+// String 方法返回表达式语句的字符串表示。
+// 如果 Expression 属性不为 nil，则调用该表达式的 String 方法并返回其结果。
+// 如果 Expression 属性为 nil，则返回空字符串。
 func (es *ExpressionStatement) String() string {
 	if es.Expression != nil {
 		return es.Expression.String()
@@ -194,31 +206,64 @@ func (b *Boolean) expressionNode()      {}
 func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
 func (b *Boolean) String() string       { return b.Token.Literal }
 
+// IntegerLiteral 表示源代码中的整数字面量。
+// 它包括字面量的标记信息及其实际的整数值。
 type IntegerLiteral struct {
-	Token token.Token
-	Value int64
+	Token token.Token // Token 表示整数字面量的标记信息，如类型和在源代码中的位置。
+	Value int64       // Value 表示整数字面量的实际整数值。
 }
 
-func (il *IntegerLiteral) expressionNode()      {}
+// expressionNode 方法是一个接口实现方法，用于将 IntegerLiteral 类型的实例标记为表达式节点。
+// 这个方法没有参数，也没有返回值。它的主要作用是满足某个接口的要求，使得 IntegerLiteral 类型的实例可以被视为表达式节点。
+// 该方法当前为空，是因为在设计上不需要执行任何操作，仅仅是为了实现接口的编译时要求。
+func (il *IntegerLiteral) expressionNode() {}
+
+// TokenLiteral 返回IntegerLiteral类型的字面量字符串表示。
+// 该方法主要用于获取存储在Token结构中的Literal字段值，
+// 即原始的、未经过解释或编译处理的字符串形式的整数。
+// 这对于解析或错误处理阶段需要直接访问原始输入字符串的情况非常有用。
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
-func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
+// String 实现了 fmt.Stringer 接口，用于将整数字面量转换为字符串表示形式。
+// 这个方法直接返回存储在 Token 中的字面量字符串，不进行额外的格式化处理。
+// 主要用途包括调试和日志记录，其中需要以字符串形式显示整数字面量的原始表示。
+func (il *IntegerLiteral) String() string { return il.Token.Literal }
+
+// PrefixExpression 表示一个前缀表达式结构。
+// 它包含一个标记、一个运算符以及运算符右边的表达式。
 type PrefixExpression struct {
-	Token    token.Token // The prefix token, e.g. !
-	Operator string
-	Right    Expression
+	Token    token.Token // 前缀标记，例如 !
+	Operator string      // 前缀表达式的运算符，如 +, -, ! 等
+	Right    Expression  // 运算符右边的表达式
 }
 
-func (pe *PrefixExpression) expressionNode()      {}
+// expressionNode 是 PrefixExpression 类型实现的一个接口方法。
+// 该方法用于标识 PrefixExpression 是一种表达式节点。
+// 它不执行任何操作，主要用于满足接口要求或类型断言。
+func (pe *PrefixExpression) expressionNode() {}
+
+// TokenLiteral 返回前缀表达式的令牌字面值。
+// 该方法用于获取与表达式相关联的令牌的字面值字符串。
+// 没有输入参数。
+// 返回值是字符串类型，表示令牌的字面值。
 func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+
+// PrefixExpression 的 String 方法用于生成前缀表达式的字符串表示。
+// 该方法对于显示表达式树或调试非常有用。
+// 返回值是一个字符串，表示整个前缀表达式。
 func (pe *PrefixExpression) String() string {
 	var out bytes.Buffer
 
+	// 写入左括号，开始构建前缀表达式的字符串形式。
 	out.WriteString("(")
+	// 写入操作符，这是前缀表达式的关键部分。
 	out.WriteString(pe.Operator)
+	// 递归写入右侧表达式的字符串表示，完成表达式树的遍历。
 	out.WriteString(pe.Right.String())
+	// 写入右括号，标志着一个完整前缀表达式的结束。
 	out.WriteString(")")
 
+	// 返回构建好的前缀表达式字符串。
 	return out.String()
 }
 
