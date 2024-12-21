@@ -304,12 +304,22 @@ ourFunction(20) + first + second;`
 	testIntegerObject(t, testEval(input), 70)
 }
 
+// testEval 将给定的输入字符串解析为程序并执行，返回执行结果。
+// 此函数主要负责将输入的代码字符串通过词法分析、语法分析和最终的执行过程。
 func testEval(input string) object.Object {
+	// 创建一个词法分析器，用于将输入字符串分解为词法单元（tokens）。
 	l := lexer.New(input)
+
+	// 创建一个语法分析器，用于将词法单元流转换为抽象语法树（AST）。
 	p := parser.New(l)
+
+	// 解析程序，得到抽象语法树（AST）。
 	program := p.ParseProgram()
+
+	// 创建一个新的环境，用于存储变量和函数。
 	env := object.NewEnvironment()
 
+	// 执行解析后的程序，并返回执行结果。
 	return Eval(program, env)
 }
 
