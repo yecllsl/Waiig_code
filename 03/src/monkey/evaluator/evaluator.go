@@ -185,6 +185,18 @@ func evalBlockStatement(
 	return result
 }
 
+// nativeBoolToBooleanObject 将 native bool 类型转换为 object.Boolean 类型的对象。
+// 这个函数的存在是因为需要将内置的 bool 类型与系统中的 Boolean 对象类型进行桥接，
+// 以便在系统内部统一处理布尔值。
+// 参数:
+//
+//	input - 输入的 native bool 类型变量。
+//
+// 返回值:
+//
+//	*object.Boolean - 根据输入值返回对应的 Boolean 对象。
+//	                 如果输入为 true，则返回 TRUE 对象；
+//	                 如果输入为 false，则返回 FALSE 对象。
 func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	if input {
 		return TRUE
@@ -192,37 +204,76 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return FALSE
 }
 
+// evalPrefixExpression 评估前缀表达式。
+// 参数:
+//
+//	operator: 运算符，如 "!", "-"。
+//	right: 表达式的右侧对象。
+//
+// 返回值:
+//
+//	评估后的对象，或在运算符未知时返回错误对象。
 func evalPrefixExpression(operator string, right object.Object) object.Object {
 	switch operator {
 	case "!":
+		// 评估带 "!" 运算符的表达式。
 		return evalBangOperatorExpression(right)
 	case "-":
+		// 评估带 "-" 前缀运算符的表达式。
 		return evalMinusPrefixOperatorExpression(right)
 	default:
+		// 当遇到未知运算符时，生成并返回错误对象。
 		return newError("unknown operator: %s%s", operator, right.Type())
 	}
 }
 
+// evalInfixExpression 评估中缀表达式。
+// 参数:
+// - operator: 表达式中的操作符，如 "+", "-", "*", "/", "==" 等。
+// - left: 表达式中的左操作数。
+// - right: 表达式中的右操作数。
+// 返回值:
+// - object.Object: 表达式的评估结果，具体类型取决于操作数和操作符。
 func evalInfixExpression(
 	operator string,
 	left, right object.Object,
 ) object.Object {
+	// 根据操作数的类型和操作符选择合适的处理方式。
 	switch {
+	// 当左右操作数均为整数时，调用evalIntegerInfixExpression进行计算。
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(operator, left, right)
+	// 当操作符为"=="时，比较左右操作数是否相等。
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
+	// 当操作符为"!="时，比较左右操作数是否不相等。
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
+	// 当左右操作数类型不同时，抛出类型不匹配错误。
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s",
 			left.Type(), operator, right.Type())
+	// 当操作符未知或不支持时，抛出未知操作符错误。
 	default:
 		return newError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
 	}
 }
 
+// evalBangOperatorExpression 评估带逻辑非操作符的表达式。
+// 该函数根据传入的右操作数的值，返回相应的布尔值。
+// 参数:
+//
+//	right object.Object: 右操作数对象，其类型为 object.Object。
+//
+// 返回值:
+//
+//	object.Object: 根据右操作数的值返回 TRUE 或 FALSE。
+//
+// 逻辑非操作符的语义如下：
+// - 如果右操作数为 TRUE，则返回 FALSE。
+// - 如果右操作数为 FALSE 或 NULL，则返回 TRUE。
+// - 对于其他情况，默认返回 FALSE。
 func evalBangOperatorExpression(right object.Object) object.Object {
 	switch right {
 	case TRUE:
@@ -236,22 +287,42 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	}
 }
 
+// evalMinusPrefixOperatorExpression 评估带有负号前缀操作符的表达式。
+// 这个函数接受一个对象作为参数，如果该对象不是整数类型，则返回错误。
+// 如果是整数类型，它将返回一个新的整数对象，其值为原值的负数。
 func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
+	// 检查 right 对象的类型是否为整数类型，如果不是，则返回错误。
 	if right.Type() != object.INTEGER_OBJ {
 		return newError("unknown operator: -%s", right.Type())
 	}
 
+	// 将 right 对象转换为 Integer 类型，并获取其值。
 	value := right.(*object.Integer).Value
+
+	// 返回一个新的整数对象，其值为原值的负数。
 	return &object.Integer{Value: -value}
 }
 
+// evalIntegerInfixExpression 评估两个整数对象的中缀表达式。
+// 它根据提供的操作符执行相应的数学或比较操作。
+// 参数:
+// - operator: 字符串类型，定义了要执行的操作（如"+", "-", "*", "/", "<", ">", "==", "!="）。
+// - left: 左侧操作数，类型为object.Object，预期为object.Integer的实例。
+// - right: 右侧操作数，类型为object.Object，预期为object.Integer的实例。
+// 返回值:
+//   - 返回一个object.Object类型的结果，具体类型取决于操作符。
+//     对于算术操作符（"+", "-", "*", "/"），返回一个object.Integer实例。
+//     对于比较操作符（"<", ">", "==", "!="），返回一个布尔值的封装对象。
+//     如果操作符未知，返回一个错误对象。
 func evalIntegerInfixExpression(
 	operator string,
 	left, right object.Object,
 ) object.Object {
+	// 提取左侧和右侧操作数的整数值。
 	leftVal := left.(*object.Integer).Value
 	rightVal := right.(*object.Integer).Value
 
+	// 根据操作符执行相应的操作。
 	switch operator {
 	case "+":
 		return &object.Integer{Value: leftVal + rightVal}
@@ -270,6 +341,7 @@ func evalIntegerInfixExpression(
 	case "!=":
 		return nativeBoolToBooleanObject(leftVal != rightVal)
 	default:
+		// 如果操作符不被支持，则返回错误。
 		return newError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
 	}
