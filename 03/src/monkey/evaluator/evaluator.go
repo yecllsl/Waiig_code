@@ -421,10 +421,29 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
+// newError 创建并返回一个新的错误对象。
+// 该函数接受一个格式化字符串和一个或多个参数，用于组装错误消息。
+// 参数:
+//
+//	format: 格式化字符串，描述错误的结构。
+//	a: 可变参数列表，用于填充格式化字符串中的占位符。
+//
+// 返回值:
+//
+//	*object.Error: 一个指向新创建的Error类型的指针，包含格式化后的错误消息。
 func newError(format string, a ...interface{}) *object.Error {
 	return &object.Error{Message: fmt.Sprintf(format, a...)}
 }
 
+// isError 检查给定的对象是否为错误类型。
+// 该函数用于在对象不为空的情况下，判断其类型是否为预定义的错误类型。
+// 参数:
+//
+//	obj object.Object - 待检查的对象。
+//
+// 返回值:
+//
+//	bool - 如果对象是错误类型，则返回true；否则返回false。
 func isError(obj object.Object) bool {
 	if obj != nil {
 		return obj.Type() == object.ERROR_OBJ

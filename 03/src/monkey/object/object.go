@@ -83,12 +83,21 @@ func (rv *ReturnValue) Inspect() string {
 	return rv.Value.Inspect()
 }
 
+// Error 定义了一个包含错误信息的简单结构体。
+// 该结构体用于封装错误信息，提供更详细的错误描述。
 type Error struct {
+	// Message 存储错误消息，描述发生了什么问题。
 	Message string
 }
 
+// Error 类型的 Type 方法返回错误对象的类型
+// 该方法用于标识 Error 实例属于 ERROR_OBJ 类型
+// 主要用于对象类型识别和类型转换
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
-func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
+
+// Inspect 返回错误的详细信息。
+// 该方法将错误消息前加上"ERROR: "前缀，以提供更清晰的错误指示。
+func (e *Error) Inspect() string { return "ERROR: " + e.Message }
 
 type Function struct {
 	Parameters []*ast.Identifier
