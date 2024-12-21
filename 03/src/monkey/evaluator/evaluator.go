@@ -347,20 +347,37 @@ func evalIntegerInfixExpression(
 	}
 }
 
+// evalIfExpression 评估 if 表达式并返回相应的结果对象。
+// 该函数首先评估条件表达式的值，如果条件表达式评估出错，则直接返回错误。
+// 如果条件表达式为真，则评估并返回后果表达式（Consequence）的结果。
+// 如果条件表达式为假且存在替代表达式（Alternative），则评估并返回替代表达式的结果。
+// 如果条件表达式为假且不存在替代表达式，则返回空对象。
+//
+// 参数:
+// - ie *ast.IfExpression: if 表达式的语法树表示。
+// - env *object.Environment: 执行环境，包含变量和函数的定义。
+//
+// 返回值:
+// - object.Object: 评估结果对象，可能是任何类型的对象，包括错误对象。
 func evalIfExpression(
 	ie *ast.IfExpression,
 	env *object.Environment,
 ) object.Object {
+	// 评估条件表达式的值
 	condition := Eval(ie.Condition, env)
+	// 如果条件表达式评估出错，直接返回错误
 	if isError(condition) {
 		return condition
 	}
 
+	// 如果条件表达式为真，评估并返回后果表达式的结果
 	if isTruthy(condition) {
 		return Eval(ie.Consequence, env)
 	} else if ie.Alternative != nil {
+		// 如果条件表达式为假且存在替代表达式，评估并返回替代表达式的结果
 		return Eval(ie.Alternative, env)
 	} else {
+		// 如果条件表达式为假且不存在替代表达式，返回空对象
 		return NULL
 	}
 }
@@ -377,15 +394,29 @@ func evalIdentifier(
 	return val
 }
 
+// isTruthy 判断给定的对象是否为"真值"。
+// 在这个函数中，"真值"的定义是除了NULL和FALSE之外的任何对象。
+// 参数:
+//
+//	obj object.Object: 待评估的对象。
+//
+// 返回值:
+//
+//	bool: 如果对象被认为是"真值"，则返回true；否则返回false。
 func isTruthy(obj object.Object) bool {
+	// 根据对象的类型进行判断。
 	switch obj {
 	case NULL:
+		// NULL被定义为非"真值"。
 		return false
 	case TRUE:
+		// TRUE被定义为"真值"。
 		return true
 	case FALSE:
+		// FALSE被定义为非"真值"。
 		return false
 	default:
+		// 除了NULL和FALSE之外的任何对象都被认为是"真值"。
 		return true
 	}
 }
