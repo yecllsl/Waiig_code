@@ -64,12 +64,24 @@ type Null struct{}
 func (n *Null) Type() ObjectType { return NULL_OBJ }
 func (n *Null) Inspect() string  { return "null" }
 
+// ReturnValue 是一个结构体，用于封装一个对象值。
+// 它的主要作用是作为某些函数或方法的返回值，以便于统一和简化返回值的处理。
 type ReturnValue struct {
-	Value Object
+	Value Object // Value 字段用于存储函数或方法希望返回的对象值。
 }
 
+// Type 返回ReturnValue对象的类型。
+// 该方法实现了ObjectType接口，用于标识对象的类型。
+// 参数: 无
+// 返回值: ObjectType，表示ReturnValue对象的类型。
 func (rv *ReturnValue) Type() ObjectType { return RETURN_VALUE_OBJ }
-func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
+
+// Inspect 返回ReturnValue内部值的字符串表示。
+// 该方法主要用于获取ReturnValue实例所封装值的详细信息。
+func (rv *ReturnValue) Inspect() string {
+	// 调用Value的Inspect方法，获取字符串表示的值。
+	return rv.Value.Inspect()
+}
 
 type Error struct {
 	Message string
