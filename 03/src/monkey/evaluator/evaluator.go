@@ -382,6 +382,17 @@ func evalIfExpression(
 	}
 }
 
+// evalIdentifier 评估标识符节点的值。
+// 它从给定的环境（env）中查找标识符（node.Value）对应的值。
+// 如果找到对应的值，则返回该值；如果未找到，则返回一个错误。
+// 参数:
+//
+//	node *ast.Identifier: 标识符节点，包含标识符的值。
+//	env *object.Environment: 环境对象，存储标识符和它们对应值的映射。
+//
+// 返回值:
+//
+//	object.Object: 标识符对应的值，如果未找到则返回错误对象。
 func evalIdentifier(
 	node *ast.Identifier,
 	env *object.Environment,
