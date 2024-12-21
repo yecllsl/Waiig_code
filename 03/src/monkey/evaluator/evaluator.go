@@ -6,9 +6,15 @@ import (
 	"monkey/object"
 )
 
+// 定义全局常量NULL、TRUE和FALSE，用于表示特定的布尔值和空值。
+// 这些常量在程序中用作标准的真理值和空值引用，以提高代码的可读性和一致性。
+// 布尔值只有true和false两种可能性，所以可以使用true和false的引用来代替每次都新建实例。
 var (
-	NULL  = &object.Null{}
-	TRUE  = &object.Boolean{Value: true}
+	// NULL代表空值，通常用于表示没有值或者空对象。
+	NULL = &object.Null{}
+	// TRUE代表布尔值真，用于在布尔上下文中表示真值。
+	TRUE = &object.Boolean{Value: true}
+	// FALSE代表布尔值假，用于在布尔上下文中表示假值。
 	FALSE = &object.Boolean{Value: false}
 )
 
