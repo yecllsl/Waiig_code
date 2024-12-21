@@ -99,12 +99,26 @@ func (e *Error) Type() ObjectType { return ERROR_OBJ }
 // 该方法将错误消息前加上"ERROR: "前缀，以提供更清晰的错误指示。
 func (e *Error) Inspect() string { return "ERROR: " + e.Message }
 
+// Function 结构体代表了一个函数的定义。
+// 它包含了函数的参数列表、函数体以及函数执行的环境。
 type Function struct {
+	// Parameters 是一个标识符列表，代表了函数的参数。
+	// 每个参数都是一个变量名，它们在函数被调用时会被赋予实际的值。
 	Parameters []*ast.Identifier
-	Body       *ast.BlockStatement
-	Env        *Environment
+
+	// Body 代表了函数的主体部分，即函数执行的具体代码块。
+	// 它包含了一系列的语句，这些语句在函数被调用时会按照顺序执行。
+	Body *ast.BlockStatement
+
+	// Env 代表了函数执行时的环境。
+	// 环境中包含了函数可以访问的所有变量和它们的值。
+	// 这使得函数可以在其内部使用和修改外部定义的变量。
+	Env *Environment
 }
 
+// Type 返回函数对象的类型
+// 该方法属于 Function 结构体，用于标识函数的类型为 FUNCTION_OBJ
+// 主要用于类型检查或类型转换时，确认对象类型
 func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
 func (f *Function) Inspect() string {
 	var out bytes.Buffer

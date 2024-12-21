@@ -1,5 +1,11 @@
 package object
 
+// NewEnclosedEnvironment 创建一个新的环境，并将其外层环境设置为指定的环境。
+// 这个函数用于在现有的环境链中添加一个新的层级，以便于实现作用域的嵌套。
+// 参数:
+//   outer *Environment - 指向外层环境的指针，表示新环境的外层环境。
+// 返回值:
+//   *Environment - 返回新创建的环境指针，该环境的外层环境被设置为指定的outer。
 func NewEnclosedEnvironment(outer *Environment) *Environment {
 	env := NewEnvironment()
 	env.outer = outer

@@ -462,34 +462,73 @@ func isError(obj object.Object) bool {
 	return false
 }
 
+// evalExpressions 评估一系列表达式并返回评估结果的列表。
+// 参数:
+//
+//	exps []ast.Expression - 待评估的表达式列表。
+//	env *object.Environment - 评估表达式时使用的环境。
+//
+// 返回值:
+//
+//	[]object.Object - 表达式评估结果的列表。
 func evalExpressions(
 	exps []ast.Expression,
 	env *object.Environment,
 ) []object.Object {
+	// 初始化结果列表。
 	var result []object.Object
 
+	// 遍历每个表达式进行评估。
 	for _, e := range exps {
+		// 评估当前表达式。
 		evaluated := Eval(e, env)
+		// 如果评估结果是错误，立即返回只包含该错误的列表。
 		if isError(evaluated) {
 			return []object.Object{evaluated}
 		}
+		// 将评估结果添加到结果列表中。
 		result = append(result, evaluated)
 	}
 
+	// 返回所有表达式的评估结果列表。
 	return result
 }
 
+// applyFunction 执行一个函数对象，并返回执行结果。
+// fn: 待执行的函数对象。
+// args: 传递给函数的参数列表。
+// 返回执行后的结果对象。
+// 该函数主要负责将函数体内的代码应用于给定的参数，并返回执行结果。
+// 如果传入的不是函数类型对象，将返回错误信息。
 func applyFunction(fn object.Object, args []object.Object) object.Object {
+	// 将fn对象尝试转换为Function类型，如果转换失败，则返回错误信息。
 	function, ok := fn.(*object.Function)
 	if !ok {
 		return newError("not a function: %s", fn.Type())
 	}
 
+	// 创建一个扩展的环境，将函数的参数绑定到这个新环境中。
 	extendedEnv := extendFunctionEnv(function, args)
+
+	// 在扩展的环境中评估（执行）函数的主体部分。
 	evaluated := Eval(function.Body, extendedEnv)
+
+	// 返回评估结果，如果结果是特定的返回值类型，则移除其包装。
 	return unwrapReturnValue(evaluated)
 }
 
+// extendFunctionEnv 扩展函数的环境变量。
+//
+// 该函数接收一个函数对象和一组参数，然后在给定函数的环境基础上创建一个新的封闭环境。
+// 它会将函数参数与传入的参数值进行绑定，并在新的环境中设置这些参数。
+// 这样做是为了确保函数在执行时可以访问到正确的参数值。
+//
+// 参数:
+// - fn: 指向一个函数对象的指针，该对象包含待绑定的参数。
+// - args: 一个对象数组，包含传入函数的实际参数值。
+//
+// 返回值:
+// - *object.Environment: 返回一个指向新创建的封闭环境的指针，在该环境中函数的参数被赋予了实际的值。
 func extendFunctionEnv(
 	fn *object.Function,
 	args []object.Object,
@@ -503,10 +542,17 @@ func extendFunctionEnv(
 	return env
 }
 
+// unwrapReturnValue 是一个辅助函数，用于处理可能被包装在 ReturnValue 对象中的返回值。
+// 当传入的对象是 ReturnValue 类型时，它会提取实际的返回值并返回；
+// 否则，它会直接返回传入的对象。
+// 这个函数的主要作用是简化返回值的处理，避免在每个返回点进行类型检查和值提取。
 func unwrapReturnValue(obj object.Object) object.Object {
-	if returnValue, ok := obj.(*object.ReturnValue); ok {
+	// 检查传入对象是否为 ReturnValue 类型
+	if returnValue, ok := obj.(*objectReturnValue); ok {
+		// 如果是，返回包装在 ReturnValue 中的实际值
 		return returnValue.Value
 	}
 
+	// 如果不是，直接返回传入的对象
 	return obj
 }
