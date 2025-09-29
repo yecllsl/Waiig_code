@@ -678,6 +678,8 @@ func TestCallExpressionParameterParsing(t *testing.T) {
 	}
 }
 
+// TestStringLiteralExpression 测试字符串字面量表达式的解析功能
+// 验证解析器能够正确解析字符串字面量并生成相应的 AST 节点
 func TestStringLiteralExpression(t *testing.T) {
 	input := `"hello world";`
 
