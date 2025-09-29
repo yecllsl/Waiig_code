@@ -328,16 +328,18 @@ addTwo(2);`
 	testIntegerObject(t, testEval(input), 4)
 }
 
+// TestStringLiteral 测试字符串字面量的求值功能
+// 验证 Monkey 语言解释器能够正确解析和求值字符串字面量表达式
 func TestStringLiteral(t *testing.T) {
-	input := `"Hello World!"`
+	input := `"Hello World!"` // 测试输入：包含字符串字面量的 Monkey 代码
 
-	evaluated := testEval(input)
-	str, ok := evaluated.(*object.String)
+	evaluated := testEval(input)          // 调用求值器对输入进行求值
+	str, ok := evaluated.(*object.String) // 断言求值结果应为 String 类型对象
 	if !ok {
 		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
 	}
 
-	if str.Value != "Hello World!" {
+	if str.Value != "Hello World!" { // 验证字符串对象的值为期望的 "Hello World!"
 		t.Errorf("String has wrong value. got=%q", str.Value)
 	}
 }
